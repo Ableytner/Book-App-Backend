@@ -84,7 +84,6 @@ def test_put_user(sock):
         "request": "PUT",
         "type": "user",
         "data": {
-            "name": "Stefan Pfeiffer",
             "email": "pfeiff123456@imag.mail.com",
             "pw_hash": "abcde"
         }
@@ -102,15 +101,6 @@ def test_put_user_invalid():
             "request": "PUT",
             "type": "user",
             "data": {
-                "email": "pfeiff123456@imag.mail.com",
-                "pw_hash": "abcde"
-            }
-        }, "Missing key 'name' in request "),
-        ({
-            "request": "PUT",
-            "type": "user",
-            "data": {
-                "name": "Stefan Pfeiffer",
                 "pw_hash": "abcde"
             }
         }, "Missing key 'email' in request "),
@@ -118,7 +108,6 @@ def test_put_user_invalid():
             "request": "PUT",
             "type": "user",
             "data": {
-                "name": "Stefan Pfeiffer",
                 "email": "pfeiff123456@imag.mail.com",
             }
         }, "Missing key 'pw_hash' in request ")

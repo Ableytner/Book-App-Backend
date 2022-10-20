@@ -47,7 +47,7 @@ class DBManager():
         """Add a User to the database"""
 
         with DBManager.lock:
-            user = User(name=user_dict["name"], email=user_dict["email"], pw_hash=user_dict["pw_hash"])
+            user = User(email=user_dict["email"], pw_hash=user_dict["pw_hash"], token=None)
             DBManager.session.add(user)
 
         self.commit()
@@ -67,7 +67,17 @@ class DBManager():
 
         self.commit()
 
-        return self._borrow_to_dict(borrow)
+        return {"borrow_id": borrow.borrow_id}
+
+    def add_token(self, user_id: int) -> None:
+        """Add a token to an existing user, overwriting the old one"""
+
+        with DBManager.lock:
+            token = self._create_token()
+            user = self.session.query(User).filter(User.user_id==user_id).first()
+            user.token = token
+        
+        self.commit()
 
     def commit(self) -> None:
         """Commits changes to database"""
@@ -118,7 +128,14 @@ class DBManager():
 
         with DBManager.lock:
             user = self.session.query(User).filter(User.email==email).first()
-            return user.user_id if user is not None else None
+        return user.user_id if user is not None else None
+
+    def get_user_id_by_token(self, token: str) -> int:
+        """Return the user_id from the given token"""
+
+        with DBManager.lock:
+            user = self.session.query(User).filter(User.token==token).first()
+        return user.user_id if user is not None else None
 
     def update_user(self, user_dict: dict) -> None:
         with DBManager.lock:
@@ -134,9 +151,8 @@ class DBManager():
 
         user_dict = {
             "user_id": user.user_id,
-            "name": user.name,
             "email": user.email,
-            "pw_hash": user.pw_hash,
+            "token": user.token
         }
 
         if user.borrow is None:
@@ -173,3 +189,6 @@ class DBManager():
         if borrow is None:
             return None
         return {"borrow_id": borrow.borrow_id, "book_id": borrow.book_id, "user_id": borrow.user_id}
+
+    def _create_token(self):
+        return "asecuretoken"

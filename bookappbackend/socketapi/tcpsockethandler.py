@@ -39,20 +39,24 @@ class TCPSocketHandler(socketserver.BaseRequestHandler):
                 return True, f"Book with book_id {message['data']['book_id']} not found"
             return False, book_dict
         elif message["type"] == "user":
-            user_dict = self.db_manager.get_user(message["data"]["user_id"])
-            if user_dict is None:
-                return True, f"User with user_id {message['data']['user_id']} not found"
-            return False, user_dict
+            if message["data"]["auth_type"] == "password":
+                user_id = self.db_manager.get_user_id_by_email(message["data"]["email"])
+                self.db_manager.add_token(user_id)
+            else:
+                user_id = self.db_manager.get_user_id_by_token(message["data"]["token"])
+            if user_id is None:
+                return True, f"User not found in request {message}"
+            return False, self.db_manager.get_user(user_id)
 
     def _put(self, message: dict):
         if message["type"] == "book":
             book_dict = self.db_manager.add_book(message["data"])
-            if book_dict["book_id"] == -1:
+            if book_dict["book_id"] == None:
                 return True, f"Book with args {message['data']} could not be created"
             return False, book_dict
         elif message["type"] == "user":
             user_dict = self.db_manager.add_user(message["data"])
-            if user_dict["user_id"] == -1:
+            if user_dict["user_id"] == None:
                 return True, f"User with args {message['data']} could not be created"
             return False, user_dict
 

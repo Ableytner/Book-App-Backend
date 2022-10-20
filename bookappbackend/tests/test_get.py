@@ -67,18 +67,136 @@ def test_get_book():
     assert recv_dict["data"]["author"] == "Stefan Zweig"
     assert recv_dict["data"]["title"] == "Schachnovelle"
 
-def test_get_book_mising_bookid_key(sock):
-    """Test a get request missing the 'book_id' key"""
+def test_get_book_invalid():
+    """Test invalid get requests for books"""
+
+    data = [({
+            "request": "GET",
+            "type": "book",
+            "data": {
+            }
+        }, "Missing key 'book_id' in request ")
+    ]
+
+    for request, error in data:
+        # create a socket connection
+        sock = get_sock()
+        # send the request
+        send_text(sock, json.dumps(request))
+
+        # get back an answer
+        recv_message = receive_text(sock)
+        recv_dict: dict = json.loads(recv_message)
+
+        assert recv_dict["error"]
+        assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")
+
+def test_get_user():
+    """Test the GET request by creating a user and then requesting it"""
+
+    # request the book creation
+    sock = get_sock()
 
     data = {
-        "request": "GET",
-        "type": "book",
+        "request": "PUT",
+        "type": "user",
         "data": {
+            "email": "pfeiff123456@imag.mail.com",
+            "pw_hash": "abcde"
         }
     }
     send_text(sock, json.dumps(data))
 
+    # get back the token
     recv_message = receive_text(sock)
     recv_dict: dict = json.loads(recv_message)
-    assert recv_dict["error"]
-    assert recv_dict["data"] == f"Missing key 'book_id' in request {data}"
+    assert not recv_dict["error"]
+
+    # request the user data
+    sock = get_sock()
+    data = {
+        "request": "GET",
+        "type": "user",
+        "data": {
+            "auth_type": "password",
+            "email": "pfeiff123456@imag.mail.com",
+            "pw_hash": "abcde"
+        }
+    }
+    send_text(sock, json.dumps(data))
+
+    # get back the user data
+    recv_message = receive_text(sock)
+    recv_dict: dict = json.loads(recv_message)
+    assert not recv_dict["error"]
+    assert recv_dict["data"]["email"] == "pfeiff123456@imag.mail.com"
+    assert recv_dict["data"]["token"] is not None
+
+    token = recv_dict["data"]["token"]
+    # request the user data
+    sock = get_sock()
+    data = {
+        "request": "GET",
+        "type": "user",
+        "data": {
+            "auth_type": "token",
+            "token": token
+        }
+    }
+    send_text(sock, json.dumps(data))
+
+    # get back the user data
+    recv_message = receive_text(sock)
+    recv_dict: dict = json.loads(recv_message)
+    assert not recv_dict["error"]
+    assert recv_dict["data"]["email"] == "pfeiff123456@imag.mail.com"
+    assert recv_dict["data"]["token"] == token
+
+def test_get_user_invalid():
+    """Test invalid get requests for users"""
+
+    data = [({
+            "request": "GET",
+            "type": "user",
+            "data": {
+                "email": "pfeiff123456@imag.mail.com",
+                "pw_hash": "abcde"
+            }
+        }, "Missing key 'auth_type' in request "),
+        ({
+            "request": "GET",
+            "type": "user",
+            "data": {
+                "auth_type": "password",
+                "pw_hash": "abcde"
+            }
+        }, "Missing key 'email' in request "),
+        ({
+            "request": "GET",
+            "type": "user",
+            "data": {
+                "auth_type": "password",
+                "email": "pfeiff123456@imag.mail.com"
+            }
+        }, "Missing key 'pw_hash' in request "),
+        ({
+            "request": "GET",
+            "type": "user",
+            "data": {
+                "auth_type": "token"
+            }
+        }, "Missing key 'token' in request "),
+    ]
+
+    for request, error in data:
+        # create a socket connection
+        sock = get_sock()
+        # send the request
+        send_text(sock, json.dumps(request))
+
+        # get back an answer
+        recv_message = receive_text(sock)
+        recv_dict: dict = json.loads(recv_message)
+
+        assert recv_dict["error"]
+        assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")

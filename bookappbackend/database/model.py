@@ -22,9 +22,9 @@ class User(Base):
 
     __tablename__ = "user"
     user_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     email = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     pw_hash = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    token = sqlalchemy.Column(sqlalchemy.String)
     borrow = relationship("Borrow", cascade="all,delete", uselist=False, backref="user")
 
 class Borrow(Base):
