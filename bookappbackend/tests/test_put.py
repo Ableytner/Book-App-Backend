@@ -4,36 +4,16 @@ import json
 
 from bookappbackend.tests.helpers import send_text, receive_text, get_sock
 
-def test_put_invalid():
-    """Test invalid put requests"""
-    data = [({
-            "request": "PUT",
-            "data": {}
-        }, "Missing key 'type' in request "),
-        ({
-            "request": "PUT",
-            "type": "",
-        }, "Missing key 'data' in request ")
-    ]
-    for request, error in data:
-        # create a socket connection
-        sock = get_sock()
-        # send the request
-        send_text(sock, json.dumps(request))
-
-        # get back an answer
-        recv_message = receive_text(sock)
-        recv_dict: dict = json.loads(recv_message)
-
-        assert recv_dict["error"]
-        assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")
-
 def test_put_book(sock):
     """Test adding a book using a PUT request"""
 
     data = {
         "request": "PUT",
         "type": "book",
+        "auth": {
+            "type": "token",
+            "token": "pytest_token"
+        },
         "data": {
             "title": "Schachnovelle",
             "author": "Stefan Zweig"
@@ -42,8 +22,11 @@ def test_put_book(sock):
     send_text(sock, json.dumps(data))
 
     recv_message = receive_text(sock)
-    recv_dict: dict = json.loads(recv_message)
-    assert not recv_dict["error"]
+    try:
+        recv_dict = json.loads(recv_message)
+    except json.JSONDecodeError:
+        raise Exception(f"{recv_message}")
+    assert not recv_dict["error"], f"{recv_dict['data']}"
 
 def test_put_book_invalid():
     """Test invalid put requests for books"""
@@ -51,6 +34,10 @@ def test_put_book_invalid():
     data = [({
             "request": "PUT",
             "type": "book",
+            "auth": {
+                "type": "token",
+                "token": "pytest_token"
+            },
             "data": {
                 "title": "Schachnovelle",
             }
@@ -58,6 +45,10 @@ def test_put_book_invalid():
         ({
             "request": "PUT",
             "type": "book",
+            "auth": {
+                "type": "token",
+                "token": "pytest_token"
+            },
             "data": {
                 "author": "Stefan Zweig"
             }
@@ -72,27 +63,13 @@ def test_put_book_invalid():
 
         # get back an answer
         recv_message = receive_text(sock)
-        recv_dict: dict = json.loads(recv_message)
+        try:
+            recv_dict = json.loads(recv_message)
+        except json.JSONDecodeError:
+            raise Exception(f"{recv_message}")
 
-        assert recv_dict["error"]
+        assert recv_dict["error"], f"{recv_dict['data']}"
         assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")
-
-def test_put_user(sock):
-    """Test adding a user using a PUT request"""
-
-    data = {
-        "request": "PUT",
-        "type": "user",
-        "data": {
-            "email": "pfeiff123456@imag.mail.com",
-            "pw_hash": "abcde"
-        }
-    }
-    send_text(sock, json.dumps(data))
-
-    recv_message = receive_text(sock)
-    recv_dict: dict = json.loads(recv_message)
-    assert not recv_dict["error"]
 
 def test_put_user_invalid():
     """Test invalid put requests for users"""
@@ -100,6 +77,10 @@ def test_put_user_invalid():
     data = [({
             "request": "PUT",
             "type": "user",
+            "auth": {
+                "type": "token",
+                "token": "pytest_token"
+            },
             "data": {
                 "pw_hash": "abcde"
             }
@@ -107,6 +88,10 @@ def test_put_user_invalid():
         ({
             "request": "PUT",
             "type": "user",
+            "auth": {
+                "type": "token",
+                "token": "pytest_token"
+            },
             "data": {
                 "email": "pfeiff123456@imag.mail.com",
             }
@@ -121,7 +106,10 @@ def test_put_user_invalid():
 
         # get back an answer
         recv_message = receive_text(sock)
-        recv_dict: dict = json.loads(recv_message)
+        try:
+            recv_dict = json.loads(recv_message)
+        except json.JSONDecodeError:
+            raise Exception(f"{recv_message}")
 
-        assert recv_dict["error"]
+        assert recv_dict["error"], f"{recv_dict['data']}"
         assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")

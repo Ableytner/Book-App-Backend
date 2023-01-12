@@ -25,7 +25,8 @@ class User(Base):
     email = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     pw_hash = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     token = sqlalchemy.Column(sqlalchemy.String)
-    borrow = relationship("Borrow", cascade="all,delete", uselist=False, backref="user")
+    salt = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    borrow = relationship("Borrow", cascade="all,delete", backref="user")
 
 class Borrow(Base):
     """Book and User crosstable"""

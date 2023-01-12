@@ -7,9 +7,26 @@ from bookappbackend.tests.helpers import send_text, receive_text, get_sock
 def test_invalid():
     """Test invalid requests"""
     data = [({
+        }, "Missing key 'request' in request "),
+        ({
+            "request": ""
+        }, "Invalid value '' for key 'request' in request "),
+        ({
+            "request": "GET",
+        }, "Missing key 'type' in request "),
+        ({
+            "request": "GET",
             "type": "",
+        }, "Invalid value '' for key 'type' in request "),
+        ({
+            "request": "PUT",
+            "type": "book",
+        }, "Missing key 'data' in request "),
+        ({
+            "request": "PUT",
+            "type": "book",
             "data": {}
-        }, "Missing key 'request' in request ")
+        }, "Missing key 'auth' in request ")
     ]
     for request, error in data:
         # create a socket connection
@@ -19,9 +36,12 @@ def test_invalid():
 
         # get back an answer
         recv_message = receive_text(sock)
-        recv_dict: dict = json.loads(recv_message)
+        try:
+            recv_dict = json.loads(recv_message)
+        except json.JSONDecodeError:
+            raise Exception(f"{recv_message}")
 
-        assert recv_dict["error"]
+        assert recv_dict["error"], f"{recv_dict['data']}"
         assert recv_dict["data"] == f"{error}{json.dumps(request)}".replace('"', "'")
 
 def test_corrupted():
@@ -47,6 +67,9 @@ def test_corrupted():
         send_text(sock, data_corr)
 
         recv_message = receive_text(sock)
-        recv_dict: dict = json.loads(recv_message)
-        assert recv_dict["error"]
+        try:
+            recv_dict = json.loads(recv_message)
+        except json.JSONDecodeError:
+            raise Exception(f"{recv_message}")
+        assert recv_dict["error"], f"{recv_dict['data']}"
         assert recv_dict["data"] == f"{error_msg}{data_corr}"

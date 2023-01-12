@@ -2,6 +2,8 @@
 
 # pylint: disable=E0401, R0402
 
+import random
+import string
 from threading import Lock
 
 import sqlalchemy
@@ -47,7 +49,7 @@ class DBManager():
         """Add a User to the database"""
 
         with DBManager.lock:
-            user = User(email=user_dict["email"], pw_hash=user_dict["pw_hash"], token=None)
+            user = User(email=user_dict["email"], pw_hash=user_dict["pw_hash"], salt=user_dict["salt"], token=None)
             DBManager.session.add(user)
 
         self.commit()
@@ -116,6 +118,13 @@ class DBManager():
             borrow = self.session.query(Borrow).filter(Borrow.borrow_id==borrow_id).first()
         return self._borrow_to_dict(borrow)
 
+    def get_salt(self, user_id: int) -> str | None:
+        """Return the salt of the given user_id"""
+
+        with DBManager.lock:
+            user = self.session.query(User).filter(User.user_id==user_id).first()
+        return user.salt if user is not None else None
+
     def get_user(self, user_id: int) -> dict | None:
         """Return the user with the given user_id"""
 
@@ -123,14 +132,23 @@ class DBManager():
             user = self.session.query(User).filter(User.user_id==user_id).first()
         return self._user_to_dict(user)
 
-    def get_user_id_by_email(self, email: str) -> int:
+    def get_user_token(self, user_id: int) -> str | None:
+        """Return the user token with the given user_id"""
+
+        with DBManager.lock:
+            user = self.session.query(User).filter(User.user_id==user_id).first()
+        if user is None:
+            return None
+        return user.token
+
+    def get_user_id_by_email(self, email: str) -> int | None:
         """Return the user_id from the given email"""
 
         with DBManager.lock:
             user = self.session.query(User).filter(User.email==email).first()
         return user.user_id if user is not None else None
 
-    def get_user_id_by_token(self, token: str) -> int:
+    def get_user_id_by_token(self, token: str) -> int | None:
         """Return the user_id from the given token"""
 
         with DBManager.lock:
@@ -151,8 +169,7 @@ class DBManager():
 
         user_dict = {
             "user_id": user.user_id,
-            "email": user.email,
-            "token": user.token
+            "email": user.email
         }
 
         if user.borrow is None:
@@ -175,20 +192,22 @@ class DBManager():
             "author": book.author
         }
 
-        if book.borrow is None:
-            book_dict["borrows"] = []
-        else:
-            borrow_list = []
-            for borrow in book.borrow:
-                borrow_list.append(self._borrow_to_dict(borrow))
-            book_dict["borrows"] = borrow_list
+        book_dict["borrow"] = self._borrow_to_dict(book.borrow)
 
         return book_dict
 
     def _borrow_to_dict(self, borrow: Borrow):
         if borrow is None:
             return None
-        return {"borrow_id": borrow.borrow_id, "book_id": borrow.book_id, "user_id": borrow.user_id}
+
+        return {
+            "borrow_id": borrow.borrow_id,
+            "book_id": borrow.book_id,
+            "user_id": borrow.user_id
+        }
 
     def _create_token(self):
-        return "asecuretoken"
+        # Use ascii_letters and digits strings to choose from all letters and digits
+        characters = string.ascii_letters + string.digits
+        token = ''.join(random.choice(characters) for i in range(30))
+        return token

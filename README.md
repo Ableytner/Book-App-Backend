@@ -17,6 +17,21 @@ All of the following documentation can be interpretet as **"key": "value" (expla
 
 ### GET
 
+#### Request salt
+
+Client: 
+
+- "request": "GET" (Defines the type of request)
+- "type": "salt" (Defines what is requested)
+- "data": (A dictionary containing the request data)
+    - "email": "testuser@mail.com" (The user email)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (A dictionary containing the resulting data, or a string containing the error message)
+    - "salt": "" (the salt to be used for password hashing)
+
 #### Request token
 
 Client:
@@ -25,14 +40,14 @@ Client:
 - "type": "token" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "password" (the type of authentification)
-    - "email": "maxmustermann@mail.com" (The user email)
-    - "pw_hash": ""
+    - "email": "testuser@mail.com" (The user email)
+    - "pw_hash": "" (the hashed user password)
 
 Returns:
 
 - "error": True | False (boolean value whether the request raised an error)
 - "data": (A dictionary containing the resulting data, or a string containing the error message)
-    - "":
+    - "token": "" (the token used to authentificate as the user)
 
 #### Request book
 
@@ -42,7 +57,7 @@ Client:
 - "type": "book" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "book_id": 15 (the book_id of the requested book)
 
@@ -66,7 +81,7 @@ Client:
 - "type": "book" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "title": "Die Schachnovelle" (the title of the requested book)
 
@@ -90,7 +105,7 @@ Client:
 - "type": "book" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "author": "Stefan Zweig" (the title of the requested book)
 
@@ -128,7 +143,7 @@ Client:
 - "type": "borrow" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "borrow_id": 36 (the borrow_id of the borrow to be requested)
 
@@ -148,7 +163,7 @@ Client:
 - "type": "borrow" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "user_id": 315 (the user_id of the borrows to be requested)
 
@@ -161,17 +176,70 @@ Returns:
         - "book_id": 23 (the book_id of the book that is borrowed)
         - "user_id": 315 (the user_id of the user who borrowed the book)
 
+#### Request user
+
+Client:
+
+- "request": "GET" (Defines the type of request)
+- "type": "user" (Defines what is requested)
+- "auth": (A dictionary containing authentification data)
+    - "type": "token" (the type of authentification)
+    - "token": "" (the token that was received before)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (A dictionary containing the resulting data, or a string containing the error message)
+    - "user_id": 315 (the user_id of the requested user)
+    - "email": "testuser@mail.com" (The user email)
+    - "borrows": (a dictionary containing all borrows from the user)
+        - 0: (A dictionary containing the first borrow by the specified user)
+            - "borrow_id": 60 (the borrow_id of the borrowed book)
+            - "book_id": 23 (the book_id of the book that is borrowed)
+            - "user_id": 315 (the user_id of the user who borrowed the book)
+
 ### PUT
+
+#### Create a user
+
+Client:
+
+- "request": "PUT" (Defines the type of request)
+- "type": "user" (Defines what is requested)
+- "data": (A dictionary containing the request data)
+    - "email": "testuser@mail.com" (The user email)
+    - "pw_hash": "" (the hashed user password)
+    - "salt": "" (the password hashing salt for the created user)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (An empty dictionary, or a string containing the error message)
+
+#### Delete token
+
+Client:
+
+- "request": "PUT" (Defines the type of request)
+- "type": "token" (Defines what is requested)
+- "auth": (A dictionary containing the request data)
+    - "type": "token" (the type of authentification)
+    - "token": "" (the token to be invalidated)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (An empty dictionary, or a string containing the error message)
 
 #### Borrow a book
 
 Client:
 
 - "request": "PUT" (Defines the type of request)
-- "type": "book" (Defines what is requested)
+- "type": "borrow" (Defines what is requested)
 - "auth": (A dictionary containing authentification data)
     - "type": "token" (the type of authentification)
-    - "token": "arandomtoken" (the token that was received before)
+    - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
     - "book_id": 15 (the book_id of the book to be borrowed)
 
@@ -182,3 +250,28 @@ Returns:
     - "borrow_id": 36 (the borrow_id of the borrowed book)
     - "book_id": 15 (the book_id of the book that is borrowed)
     - "user_id": 624 (the user_id of the user who borrowed the book)
+
+## Common patterns
+
+All common patterns are from the clients perspective.
+
+### User creation
+
+- Ask user for email/password
+- Create salt
+- hash password using salt
+- send the email, hashed password and salt to the server using a PUT request (create a user)
+
+### User login
+
+- Ask user for email/password
+- Request the users salt from the server using a GET request (Request salt)
+- hash the password using the salt
+- Request a token from the server, using the email and hashed password (Request token)
+- Save the received token, because it is needed for every other request
+
+### User logout
+
+- Send a PUT request for token deletion to the server (Delete token)
+- Delete the saved token
+- Return to the login page
