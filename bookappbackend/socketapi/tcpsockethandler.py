@@ -12,7 +12,7 @@ class TCPSocketHandler(socketserver.BaseRequestHandler):
     def handle(self):
         print('Client ' + str(self.client_address[0]) + ' connected!')
 
-        message = receive_text(self)
+        message = receive_text(self).replace("\n", "")
         print(f"Received data {message}")
         val_result = validate_request(message)
         # if validate_request returned an error, sent the error and exit
