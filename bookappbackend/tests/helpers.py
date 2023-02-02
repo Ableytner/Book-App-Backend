@@ -12,7 +12,7 @@ def get_sock():
     sock = create_connection(server_address, timeout=1)
     return sock
 
-def assert_response(response: str, required_keys: list[tuple[str,type,str|None]] = []) -> dict:
+def assert_response(response: str, required_keys: list[tuple[str,type,str|None]] = [], data_is_list: bool = False) -> dict:
     assert response, "ERROR: Received empty reponse"
     assert type(response) == str, f"ERROR: Response type is not str but {type(response)} in response {response}"
 
@@ -29,13 +29,22 @@ def assert_response(response: str, required_keys: list[tuple[str,type,str|None]]
         assert type(response["data"]) == str, f"ERROR: Error data type is not str in response {response}"
         raise Exception(f"ERROR: Received error in response {response}")
 
-    assert type(response["data"]) == dict, f"ERROR: Data type is not dict in response {response}"
+    expected_data_type = dict if not data_is_list else list
+    assert type(response["data"]) == expected_data_type, f"ERROR: Data type is not {expected_data_type} in response {response}"
     for key, value_type, expected_value in required_keys:
-        assert key in response["data"].keys(), f"ERROR: Missing key '{key}' in response {response}"
-        assert type(response["data"][key]) == value_type, f"ERROR: Invalid value type {type(response['data'][key])} for key '{key}' in response {response}"
-        if expected_value is not None:
-            assert response["data"][key] == expected_value, f"ERROR: Invalid value {response['data'][key]} for key '{key}' in response {response}"
-    
+        if not data_is_list:
+            assert key in response["data"].keys(), f"ERROR: Missing key '{key}' in response {response}"
+            assert type(response["data"][key]) == value_type, f"ERROR: Invalid value type {type(response['data'][key])} for key '{key}' in response {response}"
+            if expected_value is not None:
+                assert response["data"][key] == expected_value, f"ERROR: Invalid value {response['data'][key]} for key '{key}' in response {response}"
+        else:
+            for c, data_dict in enumerate(response["data"]):
+                exp_val = expected_value[c] if isinstance(expected_value, (list, tuple)) else expected_value
+                assert key in data_dict.keys(), f"ERROR: Missing key '{key}' in response {response}"
+                assert type(data_dict[key]) == value_type, f"ERROR: Invalid value type {type(data_dict[key])} for key '{key}' in response {response}"
+                if exp_val is not None:
+                    assert data_dict[key] == exp_val, f"ERROR: Invalid value {data_dict[key]} for key '{key}' in response {response}"
+
     return response
 
 def send_text(sock: socket, text: str) -> None:

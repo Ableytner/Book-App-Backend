@@ -5,6 +5,7 @@
 import random
 import string
 from threading import Lock
+from datetime import datetime, timedelta
 
 import sqlalchemy
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -61,13 +62,13 @@ class DBManager():
         """Add a Borrow to the database"""
 
         with DBManager.lock:
-            borrow = Borrow(expire_date=borrow_dict["expire_date"])
+            borrow = Borrow(expire_date=(datetime.now() + timedelta(days=14)))
             book = DBManager.session.query(Book).filter(Book.book_id==borrow_dict["book_id"]) \
                             .first()
-            book.borrow.append(book)
+            book.borrow = borrow
             user = DBManager.session.query(User).filter(User.user_id==borrow_dict["user_id"]) \
                             .first()
-            user.borrow.append(book)
+            user.borrow.append(borrow)
             DBManager.session.add(borrow)
 
         self.commit()
@@ -215,7 +216,8 @@ class DBManager():
         return {
             "borrow_id": borrow.borrow_id,
             "book_id": borrow.book_id,
-            "user_id": borrow.user_id
+            "user_id": borrow.user_id,
+            "expire_data": borrow.expire_date
         }
 
     def _create_token(self):

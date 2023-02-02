@@ -52,11 +52,13 @@ def _val_auth_dict(message: dict):
     elif auth_dict["type"] == "password":
         auth_keys += ["email", "pw_hash"]
     else:
-        return f"Invalid value '{message['request']}' for key 'type' in request {message}"
+        return f"Invalid value '{auth_dict['type']}' for key 'type' in request {message}"
 
     for key in auth_keys:
         if not key in auth_dict.keys():
             return f"Missing key '{key}' in request {message}"
+        if auth_dict[key] == "" or auth_dict[key] is None:
+            return f"Invalid value '{auth_dict[key]}' for key '{key}' in request {message}"
 
     if len(auth_dict.keys()) > len(auth_keys):
         return f"Unnecessary key '{auth_dict.keys()[0]}' in request {message}"
@@ -106,14 +108,14 @@ def _val_borrow_dict(message: dict):
     borrow_dict: dict = message["data"]
     
     if message["request"] == "GET":
-        borrow_keys = ["borrow_id", "user_id"]
-        if not any([key in borrow_dict.keys() for key in borrow_keys[0]]):
-            return f"Missing key '{'|'.join(borrow_keys[0])}' in request {message}"
+        borrow_keys = [("borrow_id", "user_id")]
     elif message["request"] == "PUT":
         borrow_keys = ["book_id"]
 
     for key in borrow_keys:
-        if not key in borrow_dict.keys():
+        if isinstance(key, str) and not key in borrow_dict.keys():
+            return f"Missing key '{key}' in request {message}"
+        elif isinstance(key, tuple) and not any([key2 in borrow_dict.keys() for key2 in key]):
             return f"Missing key '{key}' in request {message}"
 
     if len(borrow_dict.keys()) > len(borrow_keys):
