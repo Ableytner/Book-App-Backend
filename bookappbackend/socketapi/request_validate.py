@@ -87,12 +87,14 @@ def _val_book_dict(message: dict):
         if len(book_dict.keys()) > 1:
             book_keys = ["title", "author"]
         else:
-            book_keys = ["book_id"]
+            book_keys = [("book_id", "barcode")]
     elif message["request"] == "PUT":
         book_keys = ["title", "author"]
 
     for key in book_keys:
-        if not key in book_dict.keys():
+        if isinstance(key, str) and not key in book_dict.keys():
+            return f"Missing key '{key}' in request {message}"
+        elif isinstance(key, tuple) and not any([key2 in book_dict.keys() for key2 in key]):
             return f"Missing key '{key}' in request {message}"
 
     if len(book_dict.keys()) > len(book_keys):

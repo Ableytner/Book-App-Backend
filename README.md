@@ -73,6 +73,30 @@ Returns:
         - "book_id": 15 (the book_id of the book that is borrowed)
         - "user_id": 624 (the user_id of the user who borrowed the book)
 
+#### Request a book via the barcode
+
+Client:
+
+- "request": "GET" (Defines the type of request)
+- "type": "book" (Defines what is requested)
+- "auth": (A dictionary containing authentification data)
+    - "type": "token" (the type of authentification)
+    - "token": "" (the token that was received before)
+- "data": (A dictionary containing the request data)
+    - "barcode": "9783209085382" (the barcode of the requested book)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (A dictionary containing the resulting data, or a string containing the error message)
+    - "book_id": 15 (the book_id of the requested book)
+    - "title": "Die Schachnovelle" (The book title)
+    - "author": "Stefan Zweig" (The book author)
+    - "borrow": (A dictionary containing the active borrow of the requested book, or None of the book is not currently borrowed)
+        - "borrow_id": 36 (the borrow_id of the borrowed book)
+        - "book_id": 15 (the book_id of the book that is borrowed)
+        - "user_id": 624 (the user_id of the user who borrowed the book)
+
 #### Request a book via the title
 
 Client:
@@ -107,7 +131,7 @@ Client:
     - "type": "token" (the type of authentification)
     - "token": "" (the token that was received before)
 - "data": (A dictionary containing the request data)
-    - "author": "Stefan Zweig" (the title of the requested book)
+    - "author": "Stefan Zweig" (the name of the author)
 
 Returns:
 

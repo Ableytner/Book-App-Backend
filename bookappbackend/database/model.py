@@ -15,6 +15,7 @@ class Book(Base):
     book_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     title = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     author = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    barcode = sqlalchemy.Column(sqlalchemy.Integer)
     borrow = relationship("Borrow", cascade="all,delete", uselist=False, backref="book")
 
 class User(Base):

@@ -37,7 +37,7 @@ class DBManager():
         with DBManager.lock:
             try:
                 book = Book(title=book_dict["title"], author=book_dict["author"])
-            except Exception:
+            except sqlalchemy.exc.IntegrityError:
                 return {"book_id": -1}
             DBManager.session.add(book)
 
@@ -49,7 +49,8 @@ class DBManager():
         """Add a User to the database"""
 
         with DBManager.lock:
-            user = User(email=user_dict["email"], pw_hash=user_dict["pw_hash"], salt=user_dict["salt"], token=None)
+            user = User(email=user_dict["email"], pw_hash=user_dict["pw_hash"],
+                        salt=user_dict["salt"], token=None)
             DBManager.session.add(user)
 
         self.commit()
@@ -61,9 +62,11 @@ class DBManager():
 
         with DBManager.lock:
             borrow = Borrow(expire_date=borrow_dict["expire_date"])
-            book = DBManager.session.query(Book).filter(Book.book_id==borrow_dict["book_id"]).first()
+            book = DBManager.session.query(Book).filter(Book.book_id==borrow_dict["book_id"]) \
+                            .first()
             book.borrow.append(book)
-            user = DBManager.session.query(User).filter(User.user_id==borrow_dict["user_id"]).first()
+            user = DBManager.session.query(User).filter(User.user_id==borrow_dict["user_id"]) \
+                            .first()
             user.borrow.append(book)
             DBManager.session.add(borrow)
 
@@ -78,7 +81,7 @@ class DBManager():
             token = self._create_token()
             user = self.session.query(User).filter(User.user_id==user_id).first()
             user.token = token
-        
+
         self.commit()
 
     def commit(self) -> None:
@@ -109,6 +112,13 @@ class DBManager():
 
         with DBManager.lock:
             book = self.session.query(Book).filter(Book.book_id==book_id).first()
+        return self._book_to_dict(book)
+    
+    def get_book_by_barcode(self, barcode: int) -> dict | None:
+        """Return the book with the given barcode"""
+
+        with DBManager.lock:
+            book = self.session.query(Book).filter(Book.barcode==barcode).first()
         return self._book_to_dict(book)
 
     def get_borrow(self, borrow_id: int) -> dict | None:
@@ -156,6 +166,8 @@ class DBManager():
         return user.user_id if user is not None else None
 
     def update_user(self, user_dict: dict) -> None:
+        """Overwrite the saved user data with the given user data"""
+
         with DBManager.lock:
             user: User = self.session.query(User).filter(User.user_id==user_dict["user_id"]).first()
             user.name = user_dict["name"]
