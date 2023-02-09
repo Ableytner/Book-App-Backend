@@ -34,7 +34,6 @@ def test_get_borrow(pytestuser):
 
     borrow_id = 1
 
-    # request the book data
     sock = get_sock()
     data = {
         "request": "GET",
@@ -49,7 +48,6 @@ def test_get_borrow(pytestuser):
     }
     send_text(sock, json.dumps(data))
 
-    # get back the book data
     recv_message = receive_text(sock)
     assert_response(recv_message, [("borrow_id", int, 1), ("user_id", int, 1), ("book_id", int, 1)])
 
@@ -59,7 +57,6 @@ def test_get_all_borrows(pytestuser):
 
     user_id = 1
 
-    # request the book data
     sock = get_sock()
     data = {
         "request": "GET",
@@ -74,6 +71,5 @@ def test_get_all_borrows(pytestuser):
     }
     send_text(sock, json.dumps(data))
 
-    # get back the book data
     recv_message = receive_text(sock)
     assert_response(recv_message, [("borrow_id", int, 1), ("user_id", int, 1), ("book_id", int, 1)], data_is_list=True)

@@ -275,6 +275,26 @@ Returns:
     - "book_id": 15 (the book_id of the book that is borrowed)
     - "user_id": 624 (the user_id of the user who borrowed the book)
 
+### DELETE
+
+#### Delete a borrow (return a book)
+
+Client:
+
+- "request": "DELETE" (Defines the type of request)
+- "type": "borrow" (Defines what is requested)
+- "auth": (A dictionary containing authentification data)
+    - "type": "token" (the type of authentification)
+    - "token": "" (the token that was received before)
+- "data": (A dictionary containing the request data)
+    - "book_id": 15 (the book_id of the borrowed book)
+
+Returns:
+
+- "error": True | False (boolean value whether the request raised an error)
+- "data": (A dictionary containing the resulting data, or a string containing the error message)
+    - "book_id": 15 (the book_id of the book that is returned)
+
 ## Common patterns
 
 All common patterns are from the clients perspective.

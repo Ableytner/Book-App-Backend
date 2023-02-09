@@ -12,6 +12,8 @@ def handle(db_manager: DBManager, request: dict) -> dict | str:
         return get(db_manager, request)
     if request["request"] == "PUT":
         return create(db_manager, request)
+    if request["request"] == "DELETE":
+        return delete(db_manager, request)
     return None
 
 def create(db_manager: DBManager, request: dict):
@@ -48,3 +50,15 @@ def get(db_manager: DBManager, request: dict) -> dict | list | str:
 
         borrow_dict = user_dict["borrows"]
         return borrow_dict
+
+def delete(db_manager: DBManager, request: dict) -> dict | list | str:
+    """Delete a saved borrow"""
+
+    book_dict = db_manager.get_book(request["data"]["book_id"])
+    if book_dict is None:
+        return f"Book with book_id {request['data']['book_id']} not found"
+    if not "borrow" in book_dict.keys():
+        return f"Book with book_id {request['data']['book_id']} is not borrowed"
+
+    db_manager.delete_borrow(book_dict["borrow"]["borrow_id"])
+    return {"book_id": book_dict["book_id"]}

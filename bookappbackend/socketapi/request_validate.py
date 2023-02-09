@@ -9,7 +9,7 @@ def validate_request(message: str) -> str | None:
 
     if not "request" in message.keys():
         return f"Missing key 'request' in request {message}"
-    if message["request"] not in ["GET", "PUT"]:
+    if message["request"] not in ["GET", "PUT", "DELETE"]:
         return f"Invalid value '{message['request']}' for key 'request' in request {message}"
 
     if not "type" in message.keys():
@@ -89,7 +89,7 @@ def _val_book_dict(message: dict):
         if len(book_dict.keys()) > 1:
             book_keys = ["title", "author"]
         else:
-            book_keys = [("book_id", "barcode")]
+            book_keys = [("book_id", "barcode", "title")]
     elif message["request"] == "PUT":
         book_keys = ["title", "author"]
 
@@ -110,6 +110,8 @@ def _val_borrow_dict(message: dict):
     if message["request"] == "GET":
         borrow_keys = [("borrow_id", "user_id")]
     elif message["request"] == "PUT":
+        borrow_keys = ["book_id"]
+    elif message["request"] == "DELETE":
         borrow_keys = ["book_id"]
 
     for key in borrow_keys:

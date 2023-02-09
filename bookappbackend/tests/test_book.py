@@ -112,7 +112,7 @@ def test_get_book_invalid(pytestuser):
             },
             "data": {
             }
-        }, "Missing key '('book_id', 'barcode')' in request ")
+        }, "Missing key '('book_id', 'barcode', 'title')' in request ")
     ]
 
     for request, error in data:

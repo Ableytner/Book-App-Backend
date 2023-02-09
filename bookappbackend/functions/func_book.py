@@ -37,3 +37,8 @@ def get(db_manager: DBManager, request: dict):
         if book_dict is None:
             return f"Book with barcode {request['data']['barcode']} not found"
         return book_dict
+    elif "title" in request["data"].keys():
+        book_dict = db_manager.get_book_by_title(request["data"]["title"])
+        if book_dict is None:
+            return f"Book with title {request['data']['book_id']} not found"
+        return book_dict

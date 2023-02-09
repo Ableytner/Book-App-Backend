@@ -122,6 +122,13 @@ class DBManager():
             book = self.session.query(Book).filter(Book.barcode==barcode).first()
         return self._book_to_dict(book)
 
+    def get_book_by_title(self, title: str) -> dict | None:
+        """Return the book with the given title"""
+
+        with DBManager.lock:
+            book = self.session.query(Book).filter(Book.title==title).first()
+        return self._book_to_dict(book)
+
     def get_borrow(self, borrow_id: int) -> dict | None:
         """Return the borrow with the given borrow_id"""
 
